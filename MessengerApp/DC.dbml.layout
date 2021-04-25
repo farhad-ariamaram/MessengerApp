@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="DC">
+  <DataContextMoniker Name="/DCDataContext" />
+  <nestedChildShapes>
+    <classShape Id="fd0fc1ca-8d75-41fb-8c14-a864c706583e" absoluteBounds="4.625, 6.125, 2, 1.5785953776041666">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_Attachment" />
+      <nestedChildShapes>
+        <elementListCompartment Id="95b1e358-2177-4b90-a736-fc81f717e6f7" absoluteBounds="4.6400000000000006, 6.5850000000000009, 1.9700000000000002, 1.0185953776041665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="a023fde6-2c70-4181-b3e7-0ea58ee980ea" absoluteBounds="0.75, 3.625, 2, 1.1939925130208331">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_User" />
+      <nestedChildShapes>
+        <elementListCompartment Id="4816f7ce-dba9-447e-994a-54c6826099bd" absoluteBounds="0.765, 4.085, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="a87cff3c-0847-43e6-97ef-9766fe5b6f4f" absoluteBounds="0.75, 0.625, 2, 1.3862939453124998">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_Communication" />
+      <nestedChildShapes>
+        <elementListCompartment Id="c15b9d6c-7c8d-49b9-8662-2cc7c5513b40" absoluteBounds="0.765, 1.085, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="f9d3049a-da4a-482d-90ad-6ce841e2b77a" absoluteBounds="1.5, 6.25, 2, 1.1939925130208344">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_CommunicationType" />
+      <nestedChildShapes>
+        <elementListCompartment Id="131a743a-d6fa-44af-9818-5d576af968e3" absoluteBounds="1.5150000000000001, 6.71, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="ffda128b-c10d-41b9-8688-4c1872b99d6c" absoluteBounds="3.5, 3.25, 2, 1.9631982421875">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_CommunicationUser" />
+      <nestedChildShapes>
+        <elementListCompartment Id="a80f82da-28b2-4d26-b5ea-8b43ce59f2c2" absoluteBounds="3.515, 3.71, 1.9700000000000002, 1.4031982421875" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="9202a190-ee2b-4bbc-b572-01c2d76db9bf" absoluteBounds="3.75, 0.5, 2, 1.1939925130208335">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_Joined" />
+      <nestedChildShapes>
+        <elementListCompartment Id="00b3b34b-d90d-494f-877c-1fdc8758574a" absoluteBounds="3.765, 0.96, 1.9700000000000002, 0.63399251302083326" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="f4806df6-a37e-4318-91da-4cd9056262c8" absoluteBounds="6.5, 2.875, 2, 2.7324039713541675">
+      <DataClassMoniker Name="/DCDataContext/Tbl_Messenger_Message" />
+      <nestedChildShapes>
+        <elementListCompartment Id="2ef8e991-db18-4ddf-a06e-2da51dfb3672" absoluteBounds="6.515, 3.335, 1.9700000000000002, 2.1724039713541665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(3.0937505 : 6.25); (3.0937505 : 1.31814697265625); (2.75 : 1.31814697265625)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_CommunicationType/Tbl_Messenger_CommunicationType_Tbl_Messenger_Communication" />
+      <nodes>
+        <classShapeMoniker Id="f9d3049a-da4a-482d-90ad-6ce841e2b77a" />
+        <classShapeMoniker Id="a87cff3c-0847-43e6-97ef-9766fe5b6f4f" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 1.88389322916667); (3.01041716666667 : 1.88389322916667 : JumpStart); (3.17708383333333 : 1.88389322916667 : JumpEnd); (3.59375 : 1.88389322916667); (3.59375 : 3.25)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_Communication/Tbl_Messenger_Communication_Tbl_Messenger_CommunicationUser" />
+      <nodes>
+        <classShapeMoniker Id="a87cff3c-0847-43e6-97ef-9766fe5b6f4f" />
+        <classShapeMoniker Id="ffda128b-c10d-41b9-8688-4c1872b99d6c" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 4.22199625651042); (3.01041716666667 : 4.22199625651042 : JumpStart); (3.17708383333333 : 4.22199625651042 : JumpEnd); (3.5 : 4.22199625651042)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_User/Tbl_Messenger_User_Tbl_Messenger_CommunicationUser" />
+      <nodes>
+        <classShapeMoniker Id="a023fde6-2c70-4181-b3e7-0ea58ee980ea" />
+        <classShapeMoniker Id="ffda128b-c10d-41b9-8688-4c1872b99d6c" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(6.625 : 6.91429768880208); (7.5625005 : 6.91429768880208); (7.5625005 : 5.60740397135417)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_Attachment/Tbl_Messenger_Attachment_Tbl_Messenger_Message" />
+      <nodes>
+        <classShapeMoniker Id="fd0fc1ca-8d75-41fb-8c14-a864c706583e" />
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(1.75 : 4.81899251302083); (1.75 : 5.32737217447917); (3.01041716666667 : 5.32737217447917 : JumpStart); (3.17708383333333 : 5.32737217447917 : JumpEnd); (6.5 : 5.32737217447917)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_User/Tbl_Messenger_User_Tbl_Messenger_Message" />
+      <nodes>
+        <classShapeMoniker Id="a023fde6-2c70-4181-b3e7-0ea58ee980ea" />
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(2.75 : 1.97884608723958); (3.01041716666667 : 1.97884608723958 : JumpStart); (3.17708383333333 : 1.97884608723958 : JumpEnd); (3.51041666666667 : 1.97884608723958 : JumpStart); (3.67708333333333 : 1.97884608723958 : JumpEnd); (5.61979166666667 : 1.97884608723958 : JumpStart); (5.78645833333333 : 1.97884608723958 : JumpEnd); (7.5 : 1.97884608723958); (7.5 : 2.875)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_Communication/Tbl_Messenger_Communication_Tbl_Messenger_Message" />
+      <nodes>
+        <classShapeMoniker Id="a87cff3c-0847-43e6-97ef-9766fe5b6f4f" />
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(5.703125 : 1.69399251302083); (5.703125 : 3.03125); (6.5 : 3.03125)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_Joined/Tbl_Messenger_Joined_Tbl_Messenger_Message" />
+      <nodes>
+        <classShapeMoniker Id="9202a190-ee2b-4bbc-b572-01c2d76db9bf" />
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(8.5 : 3.83212134415064); (8.75 : 3.83212134415064); (8.75 : 4.6697626577524); (8.5 : 4.6697626577524)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+      <AssociationMoniker Name="/DCDataContext/Tbl_Messenger_Message/Tbl_Messenger_Message_Tbl_Messenger_Message" />
+      <nodes>
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+        <classShapeMoniker Id="f4806df6-a37e-4318-91da-4cd9056262c8" />
+      </nodes>
+    </associationConnector>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

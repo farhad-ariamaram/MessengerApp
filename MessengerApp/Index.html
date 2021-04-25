@@ -1,0 +1,797 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link href="css/chat-style.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/fa/css/font-awesome.min.css">
+    <link href="css/sidebar.css" rel="stylesheet" />
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/jquery.ui.widget.js"></script>
+    <script src="js/jquery.fileupload.js"></script>
+    <script src="js/jquery.fileupload-process.js"></script>
+
+    <style id="compiled-css" type="text/css">
+        body {
+            background: #fafafa;
+        }
+
+        #chat-context {
+            height: 91vh;
+        }
+
+        .bottomNav {
+            position: absolute;
+            bottom: 0;
+        }
+
+        .center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 1%;
+        }
+
+        .centered {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: block;
+            position: absolute;
+            width: 80%;
+            height: 70%;
+            background-color: #5f5d5d;
+            z-index: 9999;
+            text-align: right;
+            padding: 1em;
+            border-radius: 15px 15px 0px 0px;
+            overflow: auto;
+        }
+
+        .listitemusers {
+            list-style-type: none;
+            padding: 0.5em;
+        }
+
+            .listitemusers li {
+                padding: 1em;
+                margin: 0.5em;
+                background-color: #ebebeb;
+                border-radius: 15px 15px 15px 15px;
+            }
+
+        .selected {
+            background-color: #282828 !important;
+        }
+
+        .forwardButton {
+            float: left;
+            border-radius: 10px;
+            background-color: #ffffff;
+            padding: 10px
+        }
+
+            .forwardButton:hover {
+                background-color: #282828;
+                color: white;
+            }
+
+            .forwardButton:active {
+                background-color: #282828;
+                color: white;
+            }
+
+        hr {
+            border: 0;
+            height: 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pointerCurser {
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+
+        //آی دی کاربر جاری
+        var currentUserId = 1;
+
+        //آی دی کاربر انتخاب شده برای چت
+        var currentSelectedUserId = 2;
+
+        //آی دی چت بین دو نفر یا CommunicationId
+        var communicationId = 0;
+
+        //شمارنده برای این که ای دی که به هر پیام (خود کاربر) میدیم منحصر به فرد باشه و عنصر با ای دی قابل تغییر
+        var i = 0;
+
+        //شمارنده برای این که ای دی که به هر پیام (کاربر دوم) میدیم منحصر به فرد باشه و عنصر با ای دی قابل تغییر
+        var j = 0;
+
+        //ذخیره ای دی پیوست جاری
+        var currentAttachmentId = null;
+
+        //ذخیره ای دی پیام پاسخ جاری
+        var currentReplyId = null;
+
+        //ذخیره فوری بودن یا نبودن پیام جاری
+        var currentImmidiate = false;
+
+        //ذخیره آی دی جوین جاری
+        var currentJoinId = null;
+
+        //ذخیره آخرین آی دی پیام دیده شده توسط کاربر جاری
+        var lastSeenMessageId = 0;
+
+        //اطلاعات پیامی که میخواد فوروارد بشه
+        var currentForwardMessageId = 0;
+
+        //ذخیره لیستی که پیام قراره فوروارد بشود
+        var forwardList = [];
+
+
+
+
+        //start
+        $(document).ready(function () {
+            loadChatMessages();
+
+            //مرتبط کردن چک باکس فوری بودن پیام با متغیر سراسری آن
+            $('#immidiate').change(function () {
+                if (document.getElementById('immidiate').checked) {
+                    currentImmidiate = true;
+                } else {
+                    currentImmidiate = false;
+                }
+            });
+
+            //در صورت کلیک بر روی ارسال پیام ارسال شود
+            $("#ui-submit").click(function () {
+                sendMessage();
+            });
+
+            //در صورت کلیک بر روی ضربدر قسمت پاسخ بسته شود و متغیر آن خالی شود
+            $("#closeReplySection").click(function () {
+                $("#replySection").hide();
+                currentReplyId = null;
+            });
+
+            //بستن قسمت فوروارد و خالی کردن لیست فوروارد و از بین بردن حالت انتخاب شده کاربرها
+            $("#closeForwardSection").click(function () {
+                forwardList = [];
+                currentForwardMessageId = 0;
+                $(".listitemusers li").removeClass("selected");
+                $("#forwardSection").hide();
+            });
+
+            //وقتی روی دکمه فوروارد کلیک شود
+            $("#forwardButton").click(function () {
+
+                //انجام فوروارد
+                forwardList.forEach(function (item, index) {
+
+                    //آی دی چت بین دو نفر یا CommunicationId
+                    var currentCommunicationIdForForward = 0;
+                    var data = {};
+                    data.currentUserId = currentUserId;
+                    data.SelectedUserId = item;
+                    $.ajax({
+                        type: "POST",
+                        url: "WebServices.aspx/GetCommunicationId",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        async: false,
+                        data: JSON.stringify(data),
+                        success: function (response) {
+                            currentCommunicationIdForForward = response.d;
+                        },
+                        failure: function () {
+                            alert("Error in get currentCommunicationIdForForward");
+                        }
+                    });
+
+                    //گرفتن اطلاعات پیام انتخاب شده برای فوروارد
+                    var ForwardedMessageInfos = {};
+                    var data = {};
+                    data.messageId = currentForwardMessageId;
+                    $.ajax({
+                        type: "POST",
+                        url: "WebServices.aspx/GetMessageBody",
+                        contentType: "application/json;charset=utf-8",
+                        dataType: "json",
+                        async: false,
+                        data: JSON.stringify(data),
+                        success: function (response) {
+                            ForwardedMessageInfos = response.d;
+                        },
+                        failure: function () {
+                            alert("Error in get currentCommunicationIdForForward");
+                        }
+                    });
+
+                    //ارسال پیام انتخاب شده برای فوروارد به کاربر انتخابی از لیست
+                    var obj =
+                    {
+                        "_Fld_Communication_ID": currentCommunicationIdForForward,
+                        "_Fld_Message_SenderID": currentUserId,
+                        "_Fld_Message_Text": ForwardedMessageInfos._Fld_Message_Text,
+                        "_Fld_Attachment_ID": ForwardedMessageInfos._Fld_Attachment_ID,
+                        "_Fld_Message_Immediate": ForwardedMessageInfos._Fld_Message_Immediate,
+                        "_Fld_Messenger_Joined_ID": ForwardedMessageInfos._Fld_Messenger_Joined_ID,
+                        "_Fld_Messenger_Joined_Value": ForwardedMessageInfos._Fld_Messenger_Joined_Value
+                    };
+
+                    $.ajax({
+                        type: "POST",
+                        url: "WebServices.aspx/sendMessage",
+                        contentType: "application/json",
+                        data: JSON.stringify({ obj: obj }),
+                        success: function (data) {
+                        },
+                        error: function (errordata) {
+                            alert('خطا در ارسال پیام فوروارد شده');
+                        }
+                    });
+                });
+
+                //پاک کردن متغیر های جاری و بستن پنجره فوروارد
+                forwardList = [];
+                currentForwardMessageId = 0;
+                $(".listitemusers li").removeClass("selected");
+                $("#forwardSection").hide();
+            });
+
+
+        });
+
+        //تابع بارگذاری پیام های چت بین دو کاربر
+        function loadChatMessages() {
+
+            //find communication id between two user
+            var data = {};
+            data.currentUserId = currentUserId;
+            data.SelectedUserId = currentSelectedUserId;
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/GetCommunicationId",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    //fill communicationId
+                    communicationId = response.d;
+                },
+                failure: function () {
+                    alert("error on get communication id -> loadChatMessages()");
+                }
+            });
+
+            //بدست آوردن آخرین آی دی پیام دیده شده
+            var data = {};
+            data.currentUserId = currentUserId;
+            data.communicationId = communicationId;
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/GetLastSeenMessageId",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    lastSeenMessageId = response.d;
+                },
+                failure: function () {
+                    alert("there is a error!");
+                }
+            });
+
+            //load messages
+            var data = {};
+            data.communicationId = communicationId;
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/GetMessages",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    $.each(response.d, function (i, item) {
+
+                        //if message for current user
+                        if (item._Fld_Message_SenderID == currentUserId) {
+
+                            //چک کردن پیوست داشتن
+                            var hasAttach = false;
+                            if (item._Fld_Attachment_ID != null) {
+                                hasAttach = true;
+                            }
+
+                            //چک کردن پاسخ داشتن
+                            var hasReply = false;
+                            var ReplyMessage = null;
+                            if (item._Fld_Message_ReplayID != null) {
+                                hasReply = true;
+                                ReplyMessage = GetReplyMessage(item._Fld_Message_ReplayID);
+                            }
+
+                            //چک کردن جوین داشتن
+                            var hasJoin = false;
+                            if (item._Fld_Messenger_Joined_ID != null) {
+                                hasJoin = true;
+                            }
+
+                            createMessages(currentUserId, item._Fld_Message_Text, item._Fld_Message_SendDateTime, item._Fld_Message_Immediate, hasAttach, hasReply, ReplyMessage, hasJoin, item._Fld_Message_ID, null);
+                        }
+
+                        //if message for selected user
+                        if (item._Fld_Message_SenderID == currentSelectedUserId) {
+
+                            //چک کردن پیوست داشتن
+                            var hasAttach = false;
+                            if (item._Fld_Attachment_ID != null) {
+                                hasAttach = true;
+                            }
+
+                            //چک کردن پاسخ داشتن
+                            var hasReply = false;
+                            var ReplyMessage = null;
+                            if (item._Fld_Message_ReplayID != null) {
+                                hasReply = true;
+                                ReplyMessage = GetReplyMessage(item._Fld_Message_ReplayID);
+                            }
+
+                            //چک کردن جوین داشتن
+                            var hasJoin = false;
+                            if (item._Fld_Messenger_Joined_ID != null) {
+                                hasJoin = true;
+                            }
+
+                            //چک کردن دیده شده بودن پیام
+                            var isSeen = false;
+                            if (item._Fld_Message_ID <= lastSeenMessageId) {
+                                isSeen = true;
+                            }
+
+                            createMessages(currentSelectedUserId, item._Fld_Message_Text, item._Fld_Message_SendDateTime, item._Fld_Message_Immediate, hasAttach, hasReply, ReplyMessage, hasJoin, item._Fld_Message_ID, isSeen);
+                        }
+
+                    });
+                },
+                failure: function () {
+                    alert("error on get communication id -> loadChatMessages()");
+                }
+            });
+        }
+
+        //بدست آوردن پاسخ پیام
+        function GetReplyMessage(ReplyMessageId) {
+            var message = null;
+            var data = {};
+            data.replyMessageId = ReplyMessageId;
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/GetReplyMessage",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                async: false,
+                data: JSON.stringify(data),
+                success: function (response) {
+                    message = response.d._Fld_Message_Text;
+                },
+                failure: function () {
+                    alert("error on get communication id -> loadChatMessages()");
+                }
+            });
+
+            return message;
+        }
+
+        //ساخت یک پیام
+        function createMessages(senderType, messageText, SentDate, isImportant, hasAttachment, hasReply, replyMessage, hasJoined, messageId, isSeen) {
+
+            //# _Fld_Message_ID
+            //# _Fld_Communication_ID
+            //# _Fld_Message_SenderID
+            //# _Fld_Message_SendDateTime
+            //# _Fld_Message_Text
+            //# _Fld_Attachment_ID
+            //# _Fld_Message_ReplayID
+            //# _Fld_Message_Immediate
+            //# _Fld_Messenger_Joined_ID
+            //# _Fld_Messenger_Joined_Value
+
+            //تشخیص ساده بودن یا پاسخ بودن پیام
+            if (hasReply) {
+                //پیام دارای پاسخ
+
+                //قسمت پیام های خود کاربر
+                if (senderType == currentUserId) {
+
+                    //پیام ساده بدون هیچی
+                    var txt =
+                        '<div class="chat-response user">' +
+                        '<div id = "importantmessage' + i + '" style = "display:none;background-color:red;width:100%;text-align:center;margin-bottom:2px" > <i class="fa fa-exclamation-circle"></i></div>' +
+                        '<div id = "attachmentmessage' + i + '" style="display:none;background-color:blue;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-paperclip"></i></div>' +
+                        '<div id = "joinedmessage' + i + '" style="display:none;background-color:green;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-link"></i></div>' +
+                        '<div class="chat-reply user">' + replyMessage + '</div>' +
+                        '<p>' + messageText + '</p> <br>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-forward" onclick="makeItCurrentForward(' + messageId + ')"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-reply" onclick="makeItCurrentReply(' + messageId + ')"></span>' +
+                        '<br><span style="float:left;font-size: 12px">' + converDate(SentDate) + '</span></div>';
+
+                    //نمایش پیام در صفحه
+                    appendMessages(txt);
+
+                    //اگر پیام فوری بود قسمت مربوطه رو نشون بده
+                    if (isImportant) {
+                        var current = "#importantmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasAttachment) {
+                        var current = "#attachmentmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasJoined) {
+                        var current = "#joinedmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    i++;
+                }
+
+                //قسمت پیام های کاربر دوم
+                if (senderType == currentSelectedUserId) {
+
+                    //پیام ساده بدون هیچی
+                    var txt = '<div class="chat-response robot">' +
+                        '<div id="importantmessagel2' + j + '" style="display:none;background-color:red;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-exclamation-circle"></i></div>' +
+                        '<div id = "attachmentmessagel2' + j + '" style="display:none;background-color:blue;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-paperclip"></i></div>' +
+                        '<div id = "joinedmessagel2' + j + '" style="display:none;background-color:green;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-link"></i></div>' +
+                        '<div class="chat-reply user">' + replyMessage + '</div>' +
+                        '<p>' + messageText + '</p> <br>' +
+                        '<span id = "seenmessagel2' + j + '" style="display:none;float:right" class="fa fa-eye" onclick="makeItLastseenId(' + messageId + ',this)"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-forward" onclick="makeItCurrentForward(' + messageId + ')"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-reply" onclick="makeItCurrentReply(' + messageId + ')"></span>' +
+                        '<br><span style="float:left;font-size: 12px">' + converDate(SentDate) + '</span></div>';
+
+                    //نمایش پیام در صفحه
+                    appendMessages(txt);
+
+                    //اگر پیام فوری بود قسمت مربوطه رو نشون بده
+                    if (isImportant) {
+                        var current = "#importantmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasAttachment) {
+                        var current = "#attachmentmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasJoined) {
+                        var current = "#joinedmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام دیده شده بود قسمت مربوطه رو نشون نده
+                    if (!(isSeen)) {
+                        var current = "#seenmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    j++;
+                }
+            } else {
+                //پیام ساده
+
+                //قسمت پیام های خود کاربر
+                if (senderType == currentUserId) {
+
+                    //پیام ساده بدون هیچی
+                    var txt = '<div class="chat-response user">' +
+                        '<div id = "importantmessage' + i + '" style = "display:none;background-color:red;width:100%;text-align:center;margin-bottom:2px" > <i class="fa fa-exclamation-circle"></i></div>' +
+                        '<div id = "attachmentmessage' + i + '" style="display:none;background-color:blue;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-paperclip"></i></div>' +
+                        '<div id = "joinedmessage' + i + '" style="display:none;background-color:green;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-link"></i></div>' +
+                        '<p> ' + messageText + '</p> <br>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-forward" onclick="makeItCurrentForward(' + messageId + ')"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-reply" onclick="makeItCurrentReply(' + messageId + ')"></span>' +
+                        '<br><span style="float:left;font-size: 12px">' + converDate(SentDate) + '</span></div>';
+
+                    //نمایش پیام در صفحه
+                    appendMessages(txt);
+
+                    //اگر پیام فوری بود قسمت مربوطه رو نشون بده
+                    if (isImportant) {
+                        var current = "#importantmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasAttachment) {
+                        var current = "#attachmentmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasJoined) {
+                        var current = "#joinedmessage".concat(i);
+                        $(current).css("display", "block");
+                    }
+
+                    i++;
+                }
+
+                //قسمت پیام های کاربر دوم
+                if (senderType == currentSelectedUserId) {
+
+                    //پیام ساده بدون هیچی
+                    var txt = '<div class="chat-response robot">' +
+                        '<div id="importantmessagel2' + j + '" style="display:none;background-color:red;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-exclamation-circle"></i></div>' +
+                        '<div id = "attachmentmessagel2' + j + '" style="display:none;background-color:blue;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-paperclip"></i></div>' +
+                        '<div id = "joinedmessagel2' + j + '" style="display:none;background-color:green;width:100%;text-align:center;margin-bottom:2px"><i class="fa fa-link"></i></div>' +
+                        '<p>' + messageText + '</p> <br> ' +
+                        '<span id = "seenmessagel2' + j + '" style="display:none;float:right" id="eye" class="fa fa-eye" onclick="makeItLastseenId(' + messageId + ',this)"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-forward" onclick="makeItCurrentForward(' + messageId + ')"></span>' +
+                        '<span style="float:left;margin-right:4px" class="fa fa-reply" onclick="makeItCurrentReply(' + messageId + ')"></span>' +
+                        '<br><span style="float:left;font-size: 12px">' + converDate(SentDate) + '</span></div>';
+
+                    //نمایش پیام در صفحه
+                    appendMessages(txt);
+
+                    //اگر پیام فوری بود قسمت مربوطه رو نشون بده
+                    if (isImportant) {
+                        var current = "#importantmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasAttachment) {
+                        var current = "#attachmentmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام پیوست داشت قسمت مربوطه رو نشون بده
+                    if (hasJoined) {
+                        var current = "#joinedmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    //اگر پیام دیده شده بود قسمت مربوطه رو نشون نده
+                    if (!(isSeen)) {
+                        var current = "#seenmessagel2".concat(j);
+                        $(current).css("display", "block");
+                    }
+
+                    j++;
+                }
+            }
+
+        }
+
+        //اضافه کردن یک پیام در صفحه
+        function appendMessages(txt) {
+            $("#main").append(txt);
+        }
+
+        //تابع تبدیل فرمت زمانی سی شارپ به جاوا اسکریپت
+        function converDate(sentDate) {
+            var thenum2 = sentDate.replace(/\D+/g, '');
+            return new Date(parseInt(thenum2)).toLocaleString();
+        }
+
+        //فرستادن پیام و نمایش آن در صفحه
+        function sendMessage() {
+
+            //فرستادن پیام ساده
+            var obj =
+            {
+                "_Fld_Communication_ID": communicationId,
+                "_Fld_Message_SenderID": currentUserId,
+                "_Fld_Message_Text": $("#response-text").val(),
+                "_Fld_Attachment_ID": currentAttachmentId,
+                "_Fld_Message_ReplayID": currentReplyId,
+                "_Fld_Message_Immediate": currentImmidiate,
+                "_Fld_Messenger_Joined_ID": currentJoinId
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/sendMessage",
+                contentType: "application/json",
+                data: JSON.stringify({ obj: obj }),
+                async: false,
+                success: function (data) {
+                    //کل کد های زیر برای نمایش پیام در صفحه است
+
+                    //چک کردن پیوست داشتن
+                    var hasAttach = false;
+                    if (currentAttachmentId != null) {
+                        hasAttach = true;
+                    }
+
+                    //چک کردن پاسخ داشتن
+                    var hasReply = false;
+                    var ReplyMessage = null;
+                    if (currentReplyId != null) {
+                        hasReply = true;
+                        ReplyMessage = GetReplyMessage(currentReplyId);
+                    }
+
+                    //چک کردن جوین داشتن
+                    var hasJoin = false;
+                    if (currentJoinId != null) {
+                        hasJoin = true;
+                    }
+
+                    //نمایش پیام در صفحه
+                    createMessages(currentUserId, data.d._Fld_Message_Text, data.d._Fld_Message_SendDateTime, currentImmidiate, hasAttach, hasReply, ReplyMessage, hasJoin, data.d._Fld_Message_ID);
+                },
+                error: function (errordata) {
+                    alert('failure');
+                }
+            });
+
+            //پاک کردن اطلاعات
+
+            // 1.خالی کردن ورودی
+            $("#response-text").val("");
+
+            // 2.پاک کردن پیوست
+            currentAttachmentId = null;
+
+            // 3.پاک کردن پاسخ
+            currentReplyId = null;
+
+            // 4.غیرفعال کردن فوری بودن و چک باکس آن
+            currentImmidiate = false;
+            $('#immidiate').prop('checked', false);
+            $("#replySection").hide();
+
+            // 5.پاک کردن جوین
+            currentJoinId = null;
+
+            //اسکرول صفحه به انتها
+            $("#chat").animate({ scrollTop: $('#chat').prop("scrollHeight") }, 1000);
+        }
+
+        //بروزرسانی پاسخ پیام
+        function makeItCurrentReply(messageId) {
+            currentReplyId = messageId;
+            $("#replySection").show();
+            //باید یک دایو با این عنوان که شما در حال پاسخ دادن به فلان پیام هستید باز بشه
+        }
+
+        //بروزرسانی پیام انتخاب شده به عنوان اخرین پیام دیده شده
+        function makeItLastseenId(messageId, element) {
+            lastSeenMessageId = messageId;
+            var data = {};
+            data.currentUserId = communicationId;
+            data.communicationId = communicationId;
+            data.newlastseenid = messageId;
+            $.ajax({
+                type: "POST",
+                url: "WebServices.aspx/UpdateLastseenId",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                async: false,
+                success: function (data) {
+                    //پاک کردن ایکون چشم پیام های قبل پیام کلیک شده
+                    var clickedElement = (element.id).replace(/\D+/g, '');
+                    for (var i = parseInt(clickedElement); i > parseInt(clickedElement) - 1000; i--) {
+                        var d = "seenmessagel" + i;
+                        $("#" + d).hide();
+                    }
+                },
+                error: function (errordata) {
+                    alert('failure');
+                }
+            });
+        }
+
+        //انتخاب پیام برای فوروارد و گرفتن لیست کاربران
+        function makeItCurrentForward(messageId) {
+
+            //گرفتن متن پیام از آی دی از پیام انتخاب شده جهت فوروارد
+            //از تابع گرفتن پیام پاسخ استفاده شد دیگه تابع جدید ننوشتم
+            currentForwardMessageId = messageId;
+
+            //چک کردن داشتن فلگ های فوری، پیوست، جوین
+
+            $("#forwardSection").show();
+
+            //گرفتن لیست کاربران
+            //فقط اگر لیست خالی بود پر بشه
+            if ($('#usersList li').length == 0) {
+                var data = {};
+                data.currentUserId = currentUserId;
+                data.SelectedUserId = currentSelectedUserId;
+                $.ajax({
+                    type: "POST",
+                    url: "WebServices.aspx/GetUsersList",
+                    contentType: "application/json;charset=utf-8",
+                    dataType: "json",
+                    async: false,
+                    data: JSON.stringify(data),
+                    success: function (response) {
+                        $.each(response.d, function (i, item) {
+                            $("#usersList").append(
+                                "<li id='user" + item._Fld_User_ID + "' onclick='selectThisForForward(this," + item._Fld_User_ID + ")'>" + item._Fld_User_Name + "</li>"
+                            );
+                        });
+                    },
+                    failure: function () {
+                        alert("error on get Users List -> GetUsersList()");
+                    }
+                });
+            }
+        }
+
+        //انتخاب کاربر برای فوروارد
+        function selectThisForForward(e, id) {
+            $("#user" + id).toggleClass("selected");
+            if (forwardList.includes(id)) {
+                const index = forwardList.indexOf(id);
+                if (index > -1) {
+                    forwardList.splice(index, 1);
+                }
+            } else {
+                forwardList.push(id);
+            }
+        }
+
+    </script>
+</head>
+<body>
+    <asp:HiddenField ID="hdnTag1" runat="server" ClientIDMode="Static"></asp:HiddenField>
+    <asp:HiddenField ID="hdnTag2" runat="server" ClientIDMode="Static"></asp:HiddenField>
+
+    <div id="chat-context" class="chat-context">
+
+        <!--قسمت مربوط به نشان دادن پیام های فرستاده شده و دریافت شده-->
+        <div id="chat">
+            <div id="main"></div>
+        </div>
+
+        <div id="ui-control">
+            <!--قسمت مربوط به پیام فوری و پاسخ پیام-->
+            <div style="text-align: right">
+                <label for="immidiateChkBox">پیام فوری</label><input type="checkbox" id="immidiate" name="immidiateChkBox" />
+                <span id="replySection" style="margin-right:50px;display:none"><span class="fa fa-close" id="closeReplySection"></span> شما در حال پاسخ به پیام هستید</span>
+            </div>
+
+            <!--قسمت مربوط به ارسال پیام و آپلود فایل-->
+            <div id="ui-response">
+                <textarea id="response-text" maxlength="2000" cols="40" rows="5" placeholder="Enter text here" style="resize: none;"></textarea>
+                <div id="ui-submit"><i class="fa fa-paper-plane"></i></div>
+                <div onclick="uploadfile()" id="ui-attach"><i class="fa fa-paperclip"></i></div>
+            </div>
+
+            <!--قسمت مربوط به فرایند آپلود فایل-->
+            <div id="progressbar" style="width:100%;display:none">
+                <div style="background-color:#0094ff"><i class="fa fa-spinner"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!--قسمت مربوط به فوروارد پیام-->
+    <div id="forwardSection" class="centered" style="display:none">
+        <span id="closeForwardSection" aria-hidden="true"><i class="fa fa-close"></i></span>
+        <span id="forwardButton" class="forwardButton"><i class="fa fa-paper-plane"></i></span>
+        <ul id="usersList" class="listitemusers">
+        </ul>
+    </div>
+
+</body>
+</html>

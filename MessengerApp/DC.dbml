@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="MessengerDB" Class="DCDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=.;Initial Catalog=MessengerDB;Integrated Security=True" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="MessengerDBConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.Tbl_Messenger_Attachment" Member="Tbl_Messenger_Attachments">
+    <Type Name="Tbl_Messenger_Attachment">
+      <Column Name="Fld_Attachment_ID" Type="System.Int64" DbType="BigInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_Attachment_FileName" Type="System.String" DbType="NVarChar(250) NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Attachment_FileNameOrginal" Type="System.String" DbType="NVarChar(250) NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Attachment_ContentType" Type="System.String" DbType="NChar(100) NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_Attachment_Tbl_Messenger_Message" Member="Tbl_Messenger_Messages" ThisKey="Fld_Attachment_ID" OtherKey="Fld_Attachment_ID" Type="Tbl_Messenger_Message" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_User" Member="Tbl_Messenger_Users">
+    <Type Name="Tbl_Messenger_User">
+      <Column Name="Fld_User_ID" Type="System.Int64" DbType="BigInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_User_Name" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_User_Tbl_Messenger_CommunicationUser" Member="Tbl_Messenger_CommunicationUsers" ThisKey="Fld_User_ID" OtherKey="Fld_User_ID" Type="Tbl_Messenger_CommunicationUser" />
+      <Association Name="Tbl_Messenger_User_Tbl_Messenger_Message" Member="Tbl_Messenger_Messages" ThisKey="Fld_User_ID" OtherKey="Fld_Message_SenderID" Type="Tbl_Messenger_Message" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_Communication" Member="Tbl_Messenger_Communications">
+    <Type Name="Tbl_Messenger_Communication">
+      <Column Name="Fld_Communication_ID" Type="System.Int64" DbType="BigInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_Communication_Name" Type="System.String" DbType="NVarChar(200) NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_CommunicationType_ID" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_Communication_Tbl_Messenger_CommunicationUser" Member="Tbl_Messenger_CommunicationUsers" ThisKey="Fld_Communication_ID" OtherKey="Fld_Communication_ID" Type="Tbl_Messenger_CommunicationUser" />
+      <Association Name="Tbl_Messenger_Communication_Tbl_Messenger_Message" Member="Tbl_Messenger_Messages" ThisKey="Fld_Communication_ID" OtherKey="Fld_Communication_ID" Type="Tbl_Messenger_Message" />
+      <Association Name="Tbl_Messenger_CommunicationType_Tbl_Messenger_Communication" Member="Tbl_Messenger_CommunicationType" ThisKey="Fld_CommunicationType_ID" OtherKey="Fld_CommunicationType_ID" Type="Tbl_Messenger_CommunicationType" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_CommunicationType" Member="Tbl_Messenger_CommunicationTypes">
+    <Type Name="Tbl_Messenger_CommunicationType">
+      <Column Name="Fld_CommunicationType_ID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_CommunicationType_Text" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_CommunicationType_Tbl_Messenger_Communication" Member="Tbl_Messenger_Communications" ThisKey="Fld_CommunicationType_ID" OtherKey="Fld_CommunicationType_ID" Type="Tbl_Messenger_Communication" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_CommunicationUser" Member="Tbl_Messenger_CommunicationUsers">
+    <Type Name="Tbl_Messenger_CommunicationUser">
+      <Column Name="Fld_CommunicationUser_ID" Type="System.Int64" DbType="BigInt NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_Communication_ID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_User_ID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_LastSeenID" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="Fld_LastSeenDateTime" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_IsTop" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_Communication_Tbl_Messenger_CommunicationUser" Member="Tbl_Messenger_Communication" ThisKey="Fld_Communication_ID" OtherKey="Fld_Communication_ID" Type="Tbl_Messenger_Communication" IsForeignKey="true" />
+      <Association Name="Tbl_Messenger_User_Tbl_Messenger_CommunicationUser" Member="Tbl_Messenger_User" ThisKey="Fld_User_ID" OtherKey="Fld_User_ID" Type="Tbl_Messenger_User" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_Joined" Member="Tbl_Messenger_Joineds">
+    <Type Name="Tbl_Messenger_Joined">
+      <Column Name="Fld_Messenger_Joined_ID" Type="System.Int32" DbType="Int NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Fld_Messenger_Joined_Text" Type="System.String" DbType="NVarChar(100) NOT NULL" CanBeNull="false" />
+      <Association Name="Tbl_Messenger_Joined_Tbl_Messenger_Message" Member="Tbl_Messenger_Messages" ThisKey="Fld_Messenger_Joined_ID" OtherKey="Fld_Messenger_Joined_ID" Type="Tbl_Messenger_Message" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Tbl_Messenger_Message" Member="Tbl_Messenger_Messages">
+    <Type Name="Tbl_Messenger_Message">
+      <Column Name="Fld_Message_ID" Type="System.Int64" DbType="BigInt NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Fld_Communication_ID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Attachment_ID" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="Fld_Message_ReplayID" Type="System.Int64" DbType="BigInt" CanBeNull="true" />
+      <Column Name="Fld_Message_SenderID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Message_SendDateTime" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Message_Text" Type="System.String" DbType="NVarChar(2000)" CanBeNull="true" />
+      <Column Name="Fld_Message_Immediate" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Fld_Messenger_Joined_ID" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Fld_Messenger_Joined_Value" Type="System.String" DbType="NVarChar(18)" CanBeNull="true" />
+      <Association Name="Tbl_Messenger_Message_Tbl_Messenger_Message" Member="Tbl_Messenger_Messages" ThisKey="Fld_Message_ID" OtherKey="Fld_Message_ReplayID" Type="Tbl_Messenger_Message" />
+      <Association Name="Tbl_Messenger_Attachment_Tbl_Messenger_Message" Member="Tbl_Messenger_Attachment" ThisKey="Fld_Attachment_ID" OtherKey="Fld_Attachment_ID" Type="Tbl_Messenger_Attachment" IsForeignKey="true" />
+      <Association Name="Tbl_Messenger_User_Tbl_Messenger_Message" Member="Tbl_Messenger_User" ThisKey="Fld_Message_SenderID" OtherKey="Fld_User_ID" Type="Tbl_Messenger_User" IsForeignKey="true" />
+      <Association Name="Tbl_Messenger_Communication_Tbl_Messenger_Message" Member="Tbl_Messenger_Communication" ThisKey="Fld_Communication_ID" OtherKey="Fld_Communication_ID" Type="Tbl_Messenger_Communication" IsForeignKey="true" />
+      <Association Name="Tbl_Messenger_Joined_Tbl_Messenger_Message" Member="Tbl_Messenger_Joined" ThisKey="Fld_Messenger_Joined_ID" OtherKey="Fld_Messenger_Joined_ID" Type="Tbl_Messenger_Joined" IsForeignKey="true" />
+      <Association Name="Tbl_Messenger_Message_Tbl_Messenger_Message" Member="Tbl_Messenger_Message1" ThisKey="Fld_Message_ReplayID" OtherKey="Fld_Message_ID" Type="Tbl_Messenger_Message" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Function Name="dbo.SelectCommunicationId" Method="SelectCommunicationId">
+    <Parameter Name="User1" Parameter="user1" Type="System.Int64" DbType="BigInt" />
+    <Parameter Name="User2" Parameter="user2" Type="System.Int64" DbType="BigInt" />
+    <ElementType Name="SelectCommunicationIdResult">
+      <Column Name="Fld_Communication_ID" Type="System.Int64" DbType="BigInt NOT NULL" CanBeNull="false" />
+    </ElementType>
+  </Function>
+</Database>
